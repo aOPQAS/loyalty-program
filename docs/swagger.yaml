@@ -1,0 +1,391 @@
+definitions:
+  models.CreateProgramRequest:
+    properties:
+      active:
+        type: boolean
+      discount_percent:
+        type: integer
+      fixed_price:
+        type: integer
+      image:
+        type: string
+      name:
+        type: string
+      terms:
+        type: string
+      total_services_cost:
+        type: integer
+      type:
+        type: string
+      valid_until:
+        type: string
+    type: object
+  models.CreateProgramServiceRequest:
+    properties:
+      program_id:
+        type: string
+      service_id:
+        type: string
+    type: object
+  models.CreateServicesRequest:
+    properties:
+      duration:
+        type: integer
+      name:
+        type: string
+      tarif:
+        type: integer
+    type: object
+  models.Program:
+    properties:
+      active:
+        type: boolean
+      created_at:
+        type: number
+      discount_percent:
+        type: integer
+      fixed_price:
+        type: integer
+      id:
+        description: UUID
+        type: string
+      image:
+        type: string
+      name:
+        type: string
+      terms:
+        type: string
+      total_services_cost:
+        type: integer
+      type:
+        type: string
+      updated_at:
+        type: number
+      valid_until:
+        type: string
+    type: object
+  models.ProgramService:
+    properties:
+      program_id:
+        description: UUID
+        type: string
+      service_id:
+        description: UUID
+        type: string
+    type: object
+  models.Service:
+    properties:
+      duration:
+        type: integer
+      name:
+        type: string
+      service_id:
+        description: UUID
+        type: string
+      tarif:
+        type: integer
+    type: object
+  models.UpdateProgramRequest:
+    properties:
+      active:
+        type: boolean
+      discount_percent:
+        type: integer
+      fixed_price:
+        type: integer
+      id:
+        type: string
+      image:
+        type: string
+      name:
+        type: string
+      terms:
+        type: string
+      total_services_cost:
+        type: integer
+      type:
+        type: string
+      valid_until:
+        type: string
+    type: object
+  models.UpdateServicesRequest:
+    properties:
+      duration:
+        type: integer
+      name:
+        type: string
+      service_id:
+        type: string
+      tarif:
+        type: integer
+    type: object
+info:
+  contact: {}
+paths:
+  /api/program:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Program type
+        in: query
+        name: type
+        type: string
+      - description: Program name
+        in: query
+        name: name
+        type: string
+      - description: Active flag
+        in: query
+        name: active
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: response
+          schema:
+            items:
+              $ref: '#/definitions/models.Program'
+            type: array
+      summary: Get Program
+      tags:
+      - program
+  /api/program/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Program ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Delete Program
+      tags:
+      - program
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Program ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Get Program
+      tags:
+      - program
+  /api/program/create:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Program data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateProgramRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: response
+          schema:
+            $ref: '#/definitions/models.Program'
+      summary: Create Program
+      tags:
+      - program
+  /api/program/update:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Program data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateProgramRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: response
+          schema:
+            $ref: '#/definitions/models.Program'
+      summary: Update Program
+      tags:
+      - program
+  /api/program_services:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Program ID (UUID)
+        in: query
+        name: program_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: response
+          schema:
+            items:
+              $ref: '#/definitions/models.ProgramService'
+            type: array
+      summary: Get ProgramService
+      tags:
+      - ProgramService
+  /api/program_services/create:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Program services data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateProgramServiceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: response
+          schema:
+            $ref: '#/definitions/models.ProgramService'
+      summary: Create ProgramService
+      tags:
+      - ProgramService
+  /api/program_services/delete:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Program ID
+        in: query
+        name: program_id
+        required: true
+        type: string
+      - description: Service ID
+        in: query
+        name: service_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Delete ProgramService
+      tags:
+      - ProgramService
+  /api/services:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Service name
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: response
+          schema:
+            items:
+              $ref: '#/definitions/models.Service'
+            type: array
+      summary: Get Service
+      tags:
+      - service
+  /api/services/create:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Service creation payload
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateServicesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: response
+          schema:
+            $ref: '#/definitions/models.Service'
+      summary: Create Service
+      tags:
+      - service
+  /api/services/delete:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Service ID
+        in: query
+        name: service_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Delete Service
+      tags:
+      - service
+  /api/services/update:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Service update payload
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateServicesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: response
+          schema:
+            $ref: '#/definitions/models.Service'
+      summary: Update Service
+      tags:
+      - service
+  /api/subproducts:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: response from Telebon
+          schema: {}
+      summary: Get Subproducts
+      tags:
+      - Subproducts
+swagger: "2.0"

@@ -58,7 +58,6 @@ func main() {
 	fmt.Println(string(data.([]byte)))
 
 	log.Info("starting server")
-
 	s := server.New(&deps.Deps{
 		PG:      pg,
 		Telebon: client,

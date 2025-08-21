@@ -1,11 +1,19 @@
 package server
 
 import (
+	"errors"
 	"microservice/pkg/models"
 
 	"github.com/gofiber/fiber/v2"
 )
 
+// @Summary Get Service
+// @Tags service
+// @Accept json
+// @Produce json
+// @Param name query string false "Service name"
+// @Success 200 {array} models.Service "response"
+// @Router /api/services [get]
 func (s *Server) GetServices(c *fiber.Ctx) error {
 	name := c.Query("name")
 	resp, err := s.Deps.PG.GetServices(name)
@@ -15,14 +23,15 @@ func (s *Server) GetServices(c *fiber.Ctx) error {
 	return c.JSON(resp)
 }
 
-type createServicesRequest struct {
-	Name     string `json:"name"`
-	Tarif    int    `json:"tarif"`
-	Duration int    `json:"duration"`
-}
-
+// @Summary Create Service
+// @Tags service
+// @Accept json
+// @Produce json
+// @Param data body models.CreateServicesRequest true "Service creation payload"
+// @Success 200 {object} models.Service "response"
+// @Router /api/services/create [post]
 func (s *Server) CreateServices(c *fiber.Ctx) error {
-	var req createServicesRequest
+	var req models.CreateServicesRequest
 
 	if err := c.BodyParser(&req); err != nil {
 		return s.BadRequest(c, err)
@@ -40,48 +49,46 @@ func (s *Server) CreateServices(c *fiber.Ctx) error {
 	return c.JSON(resp)
 }
 
-type updateServicesRequest struct {
-	ServiceID string `json:"service_id"`
-	Name      string `json:"name"`
-	Tarif     int    `json:"tarif"`
-	Duration  int    `json:"duration"`
-}
-
+// @Summary Update Service
+// @Tags service
+// @Accept json
+// @Produce json
+// @Param data body models.UpdateServicesRequest true "Service update payload"
+// @Success 200 {object} models.Service "response"
+// @Router /api/services/update [put]
 func (s *Server) UpdateServices(c *fiber.Ctx) error {
-	var req updateServicesRequest
+	var req models.UpdateServicesRequest
 
 	if err := c.BodyParser(&req); err != nil {
 		return s.BadRequest(c, err)
 	}
 
-	err := s.Deps.PG.UpdateServices(models.Service{
-		ServiceID: req.ServiceID,
-		Name:      req.Name,
-		Tarif:     req.Tarif,
-		Duration:  req.Duration,
-	})
-	if err != nil {
+	service := models.Service(req)
+
+	if err := s.Deps.PG.UpdateServices(service); err != nil {
 		return s.InternalServerError(c, err)
 	}
 
-	return s.ResponceOK(c)
+	return c.JSON(service)
 }
 
-type deleteServicesRequest struct {
-	ServiceID string `json:"service_id"`
-}
-
+// @Summary Delete Service
+// @Tags service
+// @Accept json
+// @Produce json
+// @Param service_id query string true "Service ID"
+// @Success 200 "OK"
+// @Router /api/services/delete [delete]
 func (s *Server) DeleteServices(c *fiber.Ctx) error {
-	var req deleteServicesRequest
-
-	if err := c.BodyParser(&req); err != nil {
-		return s.BadRequest(c, err)
+	serviceID := c.Query("service_id")
+	if serviceID == "" {
+		return s.BadRequest(c, errors.New("service_id is required"))
 	}
 
-	err := s.Deps.PG.DeleteServices(req.ServiceID)
+	err := s.Deps.PG.DeleteServices(serviceID)
 	if err != nil {
 		return s.InternalServerError(c, err)
 	}
 
-	return s.ResponceOK(c)
+	return c.SendStatus(fiber.StatusOK)
 }

@@ -4,8 +4,11 @@ import (
 	"microservice/internal/deps"
 	"microservice/internal/middleware"
 
+	_ "microservice/docs"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	swagger "github.com/swaggo/fiber-swagger"
 )
 
 type Server struct {
@@ -28,6 +31,8 @@ func New(deps *deps.Deps) *Server {
 	api := s.App.Group("/api", middleware.Middleware())
 	//api := s.App.Group("/api") // localhost:8080/api
 
+	s.App.Get("/swagger/*", swagger.WrapHandler)
+
 	// products
 	api.Get("/subproducts", s.GetSubproducts)
 
@@ -42,12 +47,12 @@ func New(deps *deps.Deps) *Server {
 	api.Get("/services", s.GetServices)
 	api.Post("/services/create", s.CreateServices)
 	api.Put("/services/update", s.UpdateServices)
-	api.Delete("/services/delete", s.DeleteServices)
+	api.Delete("/services/:id", s.DeleteServices)
 
 	// program services
 	api.Get("/program_services", s.GetProgramServices)
 	api.Post("/program_services/create", s.CreateProgramService)
-	api.Delete("/program_services/delete", s.DeleteProgramService)
+	api.Delete("/program_services/:id", s.DeleteProgramService)
 
 	return s
 }

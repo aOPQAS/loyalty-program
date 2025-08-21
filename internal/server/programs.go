@@ -6,6 +6,15 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// @Summary Get Program
+// @Tags program
+// @Accept json
+// @Produce json
+// @Param type query string false "Program type"
+// @Param name query string false "Program name"
+// @Param active query boolean false "Active flag"
+// @Success 200 {array} models.Program "response"
+// @Router /api/program [get]
 func (s *Server) GetProgram(c *fiber.Ctx) error {
 	programType := c.Query("type")
 	name := c.Query("name")
@@ -19,6 +28,13 @@ func (s *Server) GetProgram(c *fiber.Ctx) error {
 	return c.JSON(resp)
 }
 
+// @Summary Get Program
+// @Tags program
+// @Accept json
+// @Produce json
+// @Param id path string true "Program ID (UUID)"
+// @Success 200 "OK"
+// @Router /api/program/{id} [get]
 func (s *Server) GetProgramByID(c *fiber.Ctx) error {
 	id := c.Params("id")
 
@@ -30,20 +46,15 @@ func (s *Server) GetProgramByID(c *fiber.Ctx) error {
 	return c.JSON(resp)
 }
 
-type createProgramRequest struct {
-	Type              string `json:"type"`
-	Name              string `json:"name"`
-	Image             string `json:"image"`
-	FixedPrice        int    `json:"fixed_price"`
-	TotalServicesCost int    `json:"total_services_cost"`
-	DiscountPercent   int    `json:"discount_percent"`
-	ValidUntil        string `json:"valid_until"`
-	Terms             string `json:"terms"`
-	Active            bool   `json:"active"`
-}
-
+// @Summary Create Program
+// @Tags program
+// @Accept json
+// @Produce json
+// @Param data body models.CreateProgramRequest true "Program data"
+// @Success 200 {object} models.Program "response"
+// @Router /api/program/create [post]
 func (s *Server) CreateProgram(c *fiber.Ctx) error {
-	var req createProgramRequest
+	var req models.CreateProgramRequest
 
 	if err := c.BodyParser(&req); err != nil {
 		return s.BadRequest(c, err)
@@ -71,21 +82,15 @@ func (s *Server) CreateProgram(c *fiber.Ctx) error {
 	return c.JSON(resp)
 }
 
-type updateProgramRequest struct {
-	ID                string `json:"id"`
-	Type              string `json:"type"`
-	Name              string `json:"name"`
-	Image             string `json:"image"`
-	FixedPrice        int    `json:"fixed_price"`
-	TotalServicesCost int    `json:"total_services_cost"`
-	DiscountPercent   int    `json:"discount_percent"`
-	ValidUntil        string `json:"valid_until"`
-	Terms             string `json:"terms"`
-	Active            bool   `json:"active"`
-}
-
+// @Summary Update Program
+// @Tags program
+// @Accept json
+// @Produce json
+// @Param data body models.UpdateProgramRequest true "Program data"
+// @Success 200 {object} models.Program "response"
+// @Router /api/program/update [put]
 func (s *Server) UpdateProgram(c *fiber.Ctx) error {
-	var req updateProgramRequest
+	var req models.UpdateProgramRequest
 
 	if err := c.BodyParser(&req); err != nil {
 		return s.BadRequest(c, err)
@@ -93,7 +98,7 @@ func (s *Server) UpdateProgram(c *fiber.Ctx) error {
 
 	finalPrice, finalDiscount := calculatePriceAndDiscount(req.FixedPrice, req.TotalServicesCost, req.DiscountPercent)
 
-	err := s.Deps.PG.UpdateProgram(models.Program{
+	program := models.Program{
 		ID:                req.ID,
 		Type:              req.Type,
 		Name:              req.Name,
@@ -104,14 +109,23 @@ func (s *Server) UpdateProgram(c *fiber.Ctx) error {
 		ValidUntil:        req.ValidUntil,
 		Terms:             req.Terms,
 		Active:            req.Active,
-	})
+	}
+
+	err := s.Deps.PG.UpdateProgram(program)
 	if err != nil {
 		return s.InternalServerError(c, err)
 	}
 
-	return c.SendStatus(fiber.StatusOK)
+	return c.JSON(program)
 }
 
+// @Summary Delete Program
+// @Tags program
+// @Accept json
+// @Produce json
+// @Param id path string true "Program ID (UUID)"
+// @Success 200 "OK"
+// @Router /api/program/{id} [delete]
 func (s *Server) DeleteProgram(c *fiber.Ctx) error {
 	id := c.Params("id")
 
