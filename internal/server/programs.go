@@ -60,7 +60,7 @@ func (s *Server) CreateProgram(c *fiber.Ctx) error {
 		return s.BadRequest(c, err)
 	}
 
-	finalPrice, finalDiscount := calculatePriceAndDiscount(req.FixedPrice, req.TotalServicesCost, req.DiscountPercent)
+	finalPrice, finalDiscount := CalculatePriceAndDiscount(req.FixedPrice, req.TotalServicesCost, req.DiscountPercent)
 
 	program := models.Program{
 		Type:              req.Type,
@@ -96,7 +96,7 @@ func (s *Server) UpdateProgram(c *fiber.Ctx) error {
 		return s.BadRequest(c, err)
 	}
 
-	finalPrice, finalDiscount := calculatePriceAndDiscount(req.FixedPrice, req.TotalServicesCost, req.DiscountPercent)
+	finalPrice, finalDiscount := CalculatePriceAndDiscount(req.FixedPrice, req.TotalServicesCost, req.DiscountPercent)
 
 	program := models.Program{
 		ID:                req.ID,

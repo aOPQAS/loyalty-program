@@ -1,0 +1,102 @@
+name: Go CI/CD
+
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+    branches:
+      - "main"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+
+      - name: Create .env file
+        run: |
+          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+          echo "POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}" >> .env
+          echo "POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}" >> .env
+          echo "POSTGRES_DATABASE=${{ secrets.POSTGRES_DATABASE }}" >> .env
+          echo "POSTGRES_SSL_MODE=${{ secrets.POSTGRES_SSL_MODE }}" >> .env
+          echo "SERVER_PORT=${{ secrets.SERVER_PORT }}" >> .env
+          echo "LOG_LEVEL=${{ secrets.LOG_LEVEL }}" >> .env
+          echo "LOG_ENCODING=${{ secrets.LOG_ENCODING }}" >> .env
+          echo "ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }}" >> .env
+          echo "TELEBON_API_URL=${{ secrets.TELEBON_API_URL }}" >> .env
+
+      - name: Install dependencies
+        run: go mod tidy
+
+      - name: Run tests
+        run: go test -v ./... -coverprofile=coverage.out
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.out
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v4
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+
+      - name: Create .env file
+        run: |
+          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+          echo "POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}" >> .env
+          echo "POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}" >> .env
+          echo "POSTGRES_DATABASE=${{ secrets.POSTGRES_DATABASE }}" >> .env
+          echo "POSTGRES_SSL_MODE=${{ secrets.POSTGRES_SSL_MODE }}" >> .env
+          echo "SERVER_PORT=${{ secrets.SERVER_PORT }}" >> .env
+          echo "LOG_LEVEL=${{ secrets.LOG_LEVEL }}" >> .env
+          echo "LOG_ENCODING=${{ secrets.LOG_ENCODING }}" >> .env
+          echo "ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }}" >> .env
+          echo "TELEBON_API_URL=${{ secrets.TELEBON_API_URL }}" >> .env
+
+      - name: Build Go binary
+        run: go build -o back ./cmd/main.go
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker image
+        run: docker build -t egorgolang/microservice:latest .
+
+      - name: Push Docker image
+        run: docker push egorgolang/microservice:latest
+
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v0.1.9
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            docker pull egorgolang/microservice:latest
+            docker stop microservice || true
+            docker rm microservice || true
+            docker run -d --name microservice -p 8080:8080 egorgolang/microservice:latest

@@ -1,6 +1,6 @@
 package server
 
-func calculatePriceAndDiscount(fixedPrice, totalCost, discountPercent int) (finalPrice int, finalDiscount int) {
+func CalculatePriceAndDiscount(fixedPrice, totalCost, discountPercent int) (finalPrice int, finalDiscount int) {
 	if fixedPrice > 0 {
 		finalPrice = fixedPrice
 		finalDiscount = 100 - (fixedPrice*100)/totalCost
